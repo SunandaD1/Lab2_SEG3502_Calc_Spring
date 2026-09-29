@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Calculatrice</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Calculatrice</h1>
+
+    <div th:switch="${error}">
+        <p th:case="'NumberFormatError'">
+            Veuillez entrer des nombres valides.
+        </p>
+
+        <p th:case="'DivisionByZero'">
+            Division par zéro est impossible.
+        </p>
+
+        <p th:case="'InvalidOperation'">
+            Opération invalide.
+        </p>
+    </div>
+
+    <form th:action="@{/calculate}" method="get">
+
+        <table>
+
+            <tr>
+                <td><label for="n1">Premier nombre :</label></td>
+                <td>
+                    <input
+                            id="n1"
+                            name="n1"
+                            th:value="${n1}">
+                </td>
+            </tr>
+
+            <tr>
+                <td><label for="n2">Second nombre :</label></td>
+                <td>
+                    <input
+                            id="n2"
+                            name="n2"
+                            th:value="${n2}">
+                </td>
+            </tr>
+
+            <tr>
+                <td><label>Résultat :</label></td>
+                <td>
+                    <input readonly th:value="${result}">
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+
+                    <button type="submit"
+                            name="operation"
+                            value="add">
+                        +
+                    </button>
+
+                    <button type="submit"
+                            name="operation"
+                            value="sub">
+                        -
+                    </button>
+
+                    <button type="submit"
+                            name="operation"
+                            value="mul">
+                        *
+                    </button>
+
+                    <button type="submit"
+                            name="operation"
+                            value="div">
+                        /
+                    </button>
+
+                </td>
+            </tr>
+
+        </table>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -53,9 +53,9 @@
             </tr>
 
             <tr>
-                <td><label>Résultat :</label></td>
+                <td><label for="result">Résultat :</label></td>
                 <td>
-                    <input readonly th:value="${result}">
+                    <input id="result" readonly th:value="${result}">
                 </td>
             </tr>
 
@@ -77,13 +77,13 @@
                     <button type="submit"
                             name="operation"
                             value="mul">
-                        *
+                        ×
                     </button>
 
                     <button type="submit"
                             name="operation"
                             value="div">
-                        /
+                        ÷
                     </button>
 
                 </td>

@@ -1,69 +1,88 @@
 package seg3502lab2.calculator
 
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import java.util.Locale
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 
-@Controller
-class WebController {
+@WebMvcTest(WebController::class)
+class WebControllerTest {
 
-    // Exécuté avant chaque gestionnaire : initialise (ou réinitialise) les attributs du modèle
-    @ModelAttribute
-    fun addAttributes(model: Model) {
-        model.addAttribute("result", "")
-        model.addAttribute("error", "")
-        model.addAttribute("n1", "")
-        model.addAttribute("n2", "")
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    private fun calc(n1: String, n2: String, op: String) =
+        mockMvc.perform(
+            get("/calculate")
+                .param("n1", n1)
+                .param("n2", n2)
+                .param("operation", op)
+        )
+
+    @Test
+    fun request_to_home() {
+        mockMvc.perform(get("/"))
+            .andExpect(status().isOk)
+            .andExpect(view().name("home"))
     }
 
-    @RequestMapping("/")
-    fun home(): String {
-        return "home"
+    @Test
+    fun addition() {
+        calc("2", "3", "add")
+            .andExpect(status().isOk)
+            .andExpect(model().attribute("result", "5.00"))
+            .andExpect(view().name("home"))
     }
 
-    @GetMapping("/calculate")
-    fun calculate(
-        // defaultValue = "" : évite une erreur 500 si un paramètre est absent de l'URL
-        @RequestParam(defaultValue = "") n1: String,
-        @RequestParam(defaultValue = "") n2: String,
-        @RequestParam(defaultValue = "") operation: String,
-        model: Model
-    ): String {
-        // On réaffiche toujours les valeurs saisies, même en cas d'erreur
-        model.addAttribute("n1", n1)
-        model.addAttribute("n2", n2)
+    @Test
+    fun subtraction() {
+        calc("10", "4", "sub")
+            .andExpect(model().attribute("result", "6.00"))
+    }
 
-        val num1 = n1.trim().toDoubleOrNull()
-        val num2 = n2.trim().toDoubleOrNull()
+    @Test
+    fun multiplication() {
+        calc("3", "5", "mul")
+            .andExpect(model().attribute("result", "15.00"))
+    }
 
-        if (num1 == null || num2 == null) {
-            model.addAttribute("error", "NumberFormatError")
-            return "home"
-        }
+    @Test
+    fun division() {
+        calc("10", "4", "div")
+            .andExpect(model().attribute("result", "2.50"))
+    }
 
-        val result: Double = when (operation) {
-            "add" -> num1 + num2
-            "sub" -> num1 - num2
-            "mul" -> num1 * num2
-            "div" -> {
-                if (num2 == 0.0) {
-                    model.addAttribute("error", "DivisionByZero")
-                    return "home"
-                }
-                num1 / num2
-            }
-            else -> {
-                model.addAttribute("error", "InvalidOperation")
-                return "home"
-            }
-        }
+    @Test
+    fun division_by_zero() {
+        calc("10", "0", "div")
+            .andExpect(status().isOk)
+            .andExpect(model().attribute("error", "DivisionByZero"))
+            .andExpect(model().attribute("result", ""))
+    }
 
-        // Locale.ROOT : toujours un point décimal ("2.50"), même sur un poste configuré en français
-        model.addAttribute("result", String.format(Locale.ROOT, "%.2f", result))
-        return "home"
+    @Test
+    fun invalid_number() {
+        calc("abc", "3", "add")
+            .andExpect(status().isOk)
+            .andExpect(model().attribute("error", "NumberFormatError"))
+            .andExpect(model().attribute("n1", "abc"))
+    }
+
+    @Test
+    fun invalid_operation() {
+        calc("2", "3", "pow")
+            .andExpect(model().attribute("error", "InvalidOperation"))
+            .andExpect(model().attribute("n1", "2"))
+    }
+
+    @Test
+    fun missing_parameters_do_not_crash() {
+        mockMvc.perform(get("/calculate"))
+            .andExpect(status().isOk)
+            .andExpect(model().attribute("error", "NumberFormatError"))
     }
 }
